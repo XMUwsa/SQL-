@@ -236,6 +236,36 @@ FROM
 
 ![image](https://user-images.githubusercontent.com/83053244/192266076-0038d177-5a9a-4cb4-bb37-8e7a03d02e2c.png)
 
+## 8.查询回答率最高的问题（难度：中等）
+**问题**：survey_log表如下，uid是用户 id；action的值为：“show” ，“answer” ，“skip” ；当 action是"answer"时，answer_id不为空，
+相反，当 action是"show"和"skip"时为空（null）；q_num是问题的数字序号。写一条 sql语句找出回答率最高的问题。
+**最高回答率的意思是：同一个问题回答次数占出现次数的比例。**
+![image](https://user-images.githubusercontent.com/83053244/192274803-66cda70a-9487-49ee-85df-b744c26c7a93.png)
+
+**分析思路**：首先计算每个问题的回答率，就想到了用group by结合count()来实现。然后按照回答率降序排序。最后选择第一行的question_id也就是回答率最高的问题。
+
+**代码**：
+```sql
+SELECT
+	question_id as survey_log
+FROM
+	( SELECT 
+		question_id, count( answer_id )/ count( question_id ) AS ratio 
+	  FROM 
+	  	survey_log
+	  GROUP BY 
+		question_id 
+	  ORDER BY
+		ratio DESC ) AS p 
+	LIMIT 1;
+```
+
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192275826-e3a4f503-89c4-4770-897b-6c1969ff248b.png)
+
+## 9.各部门前 3 高工资的员工（难度：中等）
+
 
 
 
