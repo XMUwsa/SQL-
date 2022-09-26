@@ -1,6 +1,9 @@
 ## 1.各部门工资最高的员工（难度：中等）
 **问题**：创建两个表。Employee表，包含所有员工信息，每个员工有其对应的 Id, salary和 department Id。department表，包含部门号和部门名。然后找出每个部门工资最高的员工。
 
+![image](https://user-images.githubusercontent.com/83053244/192276472-1e49a6b2-eb03-496a-acac-b1a67bdf6fbe.png)
+
+
 **分析思路**：先找出每个部门最高工资是多少；
 然后按照部门id将最高工资作为新的一列添加到employee表，并筛选出salary与max_salary相等的行；
 最后将筛选结果与department表联结。本题考查了两点：自联结和多表联结
@@ -61,6 +64,8 @@ SELECT DepartmentId, max( Salary ) AS max_salary FROM employee GROUP BY Departme
 **问题**：小美是一所中学的信息科技老师，她有一张 seat座位表，平时用来储存学生名字和与他们相对应的座位 id。
 其中纵列的 id是连续递增的。小美想改变相邻俩学生的座位，如果学生人数是奇数，则不需要改变最后一个同学的座位。
 
+![image](https://user-images.githubusercontent.com/83053244/192276619-a6d41151-656c-405a-9480-ec8af17f4805.png)
+
 **分析思路**：
 这题本质上是交换奇数偶数，奇数+1，偶数-1。这种根据不同分支得到不同列值的任务，可以使用case when 实现。
 
@@ -118,6 +123,9 @@ ORDER BY
 ## 3.分数排名（难度：简单）
 **问题**：编写一个 SQL查询来实现分数排名。如果两个分数相同，则两个分数排名（Rank）相同。请注意，平分后的下一个名次应该是下一个连续的整数值。换句话说，名次之间不应该有“间隔”。
 
+![image](https://user-images.githubusercontent.com/83053244/192276684-4fdfa024-c5f2-44be-b052-59ed808c42e3.png)
+
+
 **分析思路**：分数排名不应该有间隔，想当然地用到了dense_rank()函数。
 
 **代码**：
@@ -147,8 +155,12 @@ FROM
 **输出结果**：
 
 ![image](https://user-images.githubusercontent.com/83053244/192235412-012986b1-c0a3-4f70-86ad-c7f39634ce9b.png)
+
 ## 4.连续出现的数字（难度：简单）
 **问题**：编写一个 SQL查询，查找所有至少连续出现四次的数字。
+
+![image](https://user-images.githubusercontent.com/83053244/192276747-e3f52a1f-1aea-4e5e-888a-54076729aee7.png)
+
 
 **分析思路**：查看出现次数，那么必然要使用到count()函数。不同的数字出现次数不一样，所以要group by之后再统计。
 
@@ -201,8 +213,10 @@ p_id IS NOT NULL
 **运行结果**：
 
 ![image](https://user-images.githubusercontent.com/83053244/192260537-71fe1de5-4dac-4941-91c0-28aa43f625b1.png)
+
 ## 6.至少有五名直接下属的经理（难度：中等）
 **问题**：每位员工都有一个 Id，并且还有一个对应主管的 Id（Man-agerId）。写一条 SQL语句找出有大于等于5个下属的主管。
+
 ![image](https://user-images.githubusercontent.com/83053244/192264975-ec513117-9984-4e98-b7a7-37ebfb690ebc.png)
 
 **分析思路**：首先，我们要先筛选出下属>=5的主管序号（managerId）。然后根据managerId找到对应的姓名。这里可以用到表自联结实现。
@@ -240,6 +254,7 @@ FROM
 **问题**：survey_log表如下，uid是用户 id；action的值为：“show” ，“answer” ，“skip” ；当 action是"answer"时，answer_id不为空，
 相反，当 action是"show"和"skip"时为空（null）；q_num是问题的数字序号。写一条 sql语句找出回答率最高的问题。
 **最高回答率的意思是：同一个问题回答次数占出现次数的比例。**
+
 ![image](https://user-images.githubusercontent.com/83053244/192274803-66cda70a-9487-49ee-85df-b744c26c7a93.png)
 
 **分析思路**：首先计算每个问题的回答率，就想到了用group by结合count()来实现。然后按照回答率降序排序。最后选择第一行的question_id也就是回答率最高的问题。
