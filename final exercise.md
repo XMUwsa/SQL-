@@ -97,11 +97,11 @@ FROM
 ```sql
 #法二
 SELECT CASE WHEN ( id % 2 = 1 AND id !=( SELECT count(*) FROM seat )) THEN
-	id + 1 
-	WHEN id % 2 = 0 THEN
-	id - 1 ELSE id 
+	    id + 1 
+	    WHEN id % 2 = 0 THEN
+	    id - 1 ELSE id 
 	END AS id,
-student 
+	student 
 FROM
 	seat 
 ORDER BY
@@ -112,6 +112,7 @@ ORDER BY
 法二是直接让这个最后学生的id保持不变，只有奇数且不是最后一个学生才能id+1。
 
 **运行结果**：
+
 ![image](https://user-images.githubusercontent.com/83053244/192233978-90a68a94-c35b-4a91-a9c4-acb0eca452c3.png)
 
 ## 3.分数排名（难度：简单）
@@ -144,6 +145,7 @@ FROM
 **代码注意点**：1.rank是sql中的特定名，所以想要用它做别名必须加上引号‘rank’。2.分数越高排名越靠前，所以是降序，用DESC。
 
 **输出结果**：
+
 ![image](https://user-images.githubusercontent.com/83053244/192235412-012986b1-c0a3-4f70-86ad-c7f39634ce9b.png)
 ## 4.连续出现的数字（难度：简单）
 **问题**：编写一个 SQL查询，查找所有至少连续出现四次的数字。
@@ -155,16 +157,87 @@ FROM
 SELECT
 	num AS ConsecutiveNums 
 FROM
-LOGS 
+	logs 
 GROUP BY
 	num 
 HAVING
 	count(*) > 3;
 ```
 **运行结果**：
+
 ![image](https://user-images.githubusercontent.com/83053244/192237741-c75c8486-928f-40b0-a721-e9ae29afd634.png)
 
-## 5.
+## 5.树节点（难度：中等）
+**问题**：对于 tree表，id是树节点的标识，p_id是其父节点的 id。写一条查询语句打印节点 id及对应的节点类型。按照节点 id排序。注意：如果一个树只有一个节点，只需要输出根节点属性。
+
+![image](https://user-images.githubusercontent.com/83053244/192259719-67435cd6-a27e-4bc9-a76f-0b5919b4e2f4.png)
+
+**分析思路**：分类问题，所以想当然想到case when语句。三种节点的最大区别就是自身是不是父节点，自己的父节点是不是null。
+
+**代码**：
+```sql
+SELECT
+	id,
+	CASE WHEN p_id IS NULL THEN
+	     'root' 
+	     WHEN p_id IS NOT NULL 
+             AND id IN ( SELECT p_id FROM tree WHERE p_id IS NOT NULL ) THEN
+   	     'inner' 
+	     WHEN id NOT IN ( SELECT p_id FROM tree WHERE p_id IS NOT NULL ) THEN
+	     'leaf' ELSE NULL 
+	END AS type 
+FROM
+	tree;
+```
+**代码注意点**：
+```sql
+#错误判断条件
+p_id = NULL 
+p_id <> NULL
+#正确判断条件
+p_id IS NULL
+p_id IS NOT NULL 
+```
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192260537-71fe1de5-4dac-4941-91c0-28aa43f625b1.png)
+## 6.至少有五名直接下属的经理（难度：中等）
+**问题**：每位员工都有一个 Id，并且还有一个对应主管的 Id（Man-agerId）。写一条 SQL语句找出有大于等于5个下属的主管。
+![image](https://user-images.githubusercontent.com/83053244/192264975-ec513117-9984-4e98-b7a7-37ebfb690ebc.png)
+
+**分析思路**：首先，我们要先筛选出下属>=5的主管序号（managerId）。然后根据managerId找到对应的姓名。这里可以用到表自联结实现。
+
+**代码**：
+```sql
+SELECT
+	p1.NAME 
+FROM
+	employee AS p1
+	INNER JOIN ( SELECT managerId, count(*) AS subordinate FROM employee GROUP BY managerId HAVING subordinate >= 5 ) AS p2 
+WHERE
+	p1.id = p2.managerId;
+```
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192265425-7d2fdca2-e015-4889-884c-82db22014fe6.png)
+
+## 7.分数排名（难度：简单）
+**问题**：练习3的分数表，实现排名功能，但是排名需要是非连续的
+
+**代码**：
+```sql
+SELECT
+	Score,
+	RANK() over ( ORDER BY Score DESC ) AS 'Rank' 
+FROM
+	score;
+```
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192266076-0038d177-5a9a-4cb4-bb37-8e7a03d02e2c.png)
+
+
+
 
 
 
