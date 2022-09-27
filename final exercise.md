@@ -381,7 +381,7 @@ WHERE
 
 `cast(number as decimal(10,2))`，可以实现保留两位有效数字。`sqrt(power(( p1.x - p2.x ), 2 )+ power(( p1.y - p2.y ), 2 ))`是距离公式。
 
-**where中不能使用max() 等聚合函数，rank() over 等窗口函数只能在 SELECT 子句中使用，order by 等在select前执行的子句不能使用select定义的别名！**违反这些规则会报错，而且不记清楚会浪费很多时间。
+**where中不能使用max() 等聚合函数，rank() over 等窗口函数只能在 SELECT 子句中使用，order by 等在select前执行的子句不能使用select定义的别名**！违反这些规则会报错，而且不记清楚会浪费很多时间。
 
 **小结**：法一和法二区别在于算出点与点之间的距离之后（如下表），怎么找到最短距离。最精炼的办法（法一）就是在新表的基础上，按照distance order by排序，然后选择第一行就可以了。
 
