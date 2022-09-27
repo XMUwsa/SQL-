@@ -403,7 +403,7 @@ Users表存所有用户。每个用户有唯一键 Users_Id。Banned表示这个
 
 写一段 SQL语句查出每天非禁止用户的取消率。取消率（Cancellation Rate）：取消次数/总次数，保留两位小数。
 
-**分析思路**：这个题目有两种理解，第二种放在11.2，这里只讲第一种理解。只要订单有违禁用户，那么就不看这条订单。所以剩下的订单肯定都是正常用户。我们只需要取出只包含正常用户的数据作为子表，然后计算每天取消率就行了。怎么取出子表呢？先取出 users表中 banned 是 yes 的 users_id,然后只要 order表中的 client_id 和 driver_id 不在这个 users_id 集合中的订单，就是可以用的订单。 
+**分析思路**：这个题目有两种理解，第二种放在11.2，这里只讲第一种理解。只要订单有违禁用户，那么就不看这条订单。所以剩下的订单肯定都是正常用户。**我们只需要取出只包含正常用户的数据作为子表，然后计算每天取消率就行了**。怎么取出子表呢？先取出 users表中 banned 是 yes 的 users_id,然后只要 order表中的 client_id 和 driver_id 不在这个 users_id 集合中的订单，就是可以用的订单。 
 
 **代码**：
 ```sql
@@ -483,7 +483,91 @@ GROUP BY
 ![image](https://user-images.githubusercontent.com/83053244/192490545-6c9a3247-e1be-4310-9f27-82a5e7de7568.png)
 
 ## 11.2 行程和用户（难度：困难）
-**分析思路2**：只有
+**分析思路2**：只有违禁用户取消的订单才需要排除，违禁用户坐在车上的订单是可以用的。**那么我们先找出取消者cancel_id（order2表），然后比对出这些取消者是不是违禁用户（order3表）**。最后计算取消率。
+
+**代码**：
+```sql
+SELECT
+	request_at AS DAY,
+	cast(
+	count( CASE WHEN cancel_id <> 0 THEN 1 END )/ count( cancel_id ) AS DECIMAL ( 10, 2 )) AS 'Cancellation Rate' 
+FROM
+	(
+	SELECT
+		order2.id,
+		order2.cancel_id,
+		order2.request_at,
+		users.banned 
+	FROM
+		( SELECT *, CASE WHEN STATUS = 2 THEN driver_id WHEN STATUS = 3 THEN client_id ELSE 0 END AS cancel_id FROM `order` ) AS order2
+		LEFT OUTER JOIN users ON order2.cancel_id = users.users_id 
+	) AS order3 
+GROUP BY
+	request_at;
+```
+
+**代码注意点**：order2表，order3表
+
+![image](https://user-images.githubusercontent.com/83053244/192493282-b390b792-740d-4a04-bdcc-1de36bbb20af.png)
+
+![image](https://user-images.githubusercontent.com/83053244/192493452-58419d3e-bebc-42e5-a380-bc107140f128.png)
+
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192494138-18d1b5f6-92de-4cae-ab97-4051c7387bd1.png)
+
+## 12.行转列（难度：中等）
+**问题**：假设 A B C三位小朋友期末考试成绩如下所示
+
+![image](https://user-images.githubusercontent.com/83053244/192494584-eba67ef9-4781-44e8-b2a3-b6d6f95d24d3.png)
+
+请使用 SQL代码将以上成绩转换为如下格式：
+
+![image](https://user-images.githubusercontent.com/83053244/192494634-4641dca7-2bd3-4b0f-9a0a-d82e89ef0f56.png)
+
+**代码**：
+```sql
+#case when 与聚合函数的结合应用
+SELECT
+	`name`,
+	sum( CASE WHEN subject = 1 THEN score ELSE NULL END ) AS chinese,
+	sum( CASE WHEN subject = 2 THEN score ELSE NULL END ) AS math,
+	sum( CASE WHEN subject = 3 THEN score ELSE NULL END ) AS english 
+FROM
+	quiz 
+GROUP BY
+	`name`;
+```
+
+## 13.列转行（难度：中等）
+**问题**：上面12题的反向操作
+
+**代码**：
+```sql
+#将12题的查询结果建成新表quiz2
+CREATE TABLE quiz2 (
+	SELECT
+		`name`,
+		sum( CASE WHEN subject = 1 THEN score ELSE NULL END ) AS chinese,
+		sum( CASE WHEN subject = 2 THEN score ELSE NULL END ) AS math,
+		sum( CASE WHEN subject = 3 THEN score ELSE NULL END ) AS english 
+	FROM
+		quiz 
+	GROUP BY
+		`name` 
+	);
+	
+#反向操作
+(select `name`,'chinese' as subject, chinese as score from quiz2
+union
+select `name`,'math' as subject, math as score from quiz2
+union
+select `name`,'english' as subject, english as score from quiz2
+) order by `name`;
+```
+
+
+
 
 
 
