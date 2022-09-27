@@ -392,10 +392,80 @@ WHERE
 ![image](https://user-images.githubusercontent.com/83053244/192420611-ea265c9c-78c3-464c-b46e-c4bf06b6a676.png)
 
 ## 11.行程和用户（难度：困难）
-**问题**：
+**问题**：order表中存所有出租车的行程信息。每段行程有唯一键 Id，Client_Id和 Driver_Id是 Users表中 Users_Id
+的外键。Status是枚举类型，枚举成员为 (‘completed’, ‘cancelled_by_driver’, ‘cancelled_by_client’)。
 
+![image](https://user-images.githubusercontent.com/83053244/192486758-a96f129e-eed8-451e-a88d-431cc0b411a9.png)
 
-**代码注意点**：`order`是 SQL 中的关键字，用作表名时需要使用反引号包围。
+Users表存所有用户。每个用户有唯一键 Users_Id。Banned表示这个用户是否被禁止，Role则是一个表示（‘client’, ‘driver’, ‘partner’ ）的枚举类型。
+
+![image](https://user-images.githubusercontent.com/83053244/192486883-bfd16b1c-abe4-42b6-939e-4cd7ffe03bb3.png)
+
+写一段 SQL语句查出每天非禁止用户的取消率。取消率（Cancellation Rate）：取消次数/总次数，保留两位小数。
+
+**分析思路**：这个题目有两种理解，第二种放在11.2，这里只讲第一种理解。只要订单有违禁用户，那么就不看这条订单。所以剩下的订单肯定都是正常用户。我们只需要取出只包含正常用户的数据作为子表，然后计算每天取消率就行了。怎么取出子表呢？先取出 users表中 banned 是 yes 的 users_id,然后只要 order表中的 client_id 和 driver_id 不在这个 users_id 集合中的订单，就是可以用的订单。 
+
+**代码**：
+```sql
+#创建主表users
+CREATE TABLE users ( users_id INT PRIMARY KEY, banned enum ( 'No', 'Yes' ) NOT NULL, role enum ( 'client', 'driver', 'partner' ) NOT NULL );
+INSERT INTO users
+VALUES
+	( 1, 1, 1 ),
+	( 2, 2, 1 ),
+	( 3, 1, 1 ),
+	( 4, 1, 1 ),
+	( 10, 1, 2 ),
+	( 11, 1, 2 ),
+	( 12, 1, 2 ),
+	( 13, 1, 2 );
+
+#创建从表
+CREATE TABLE `order` (
+	id INT PRIMARY KEY auto_increment,
+	client_id INT REFERENCES users ( users_id ),
+	driver_id INT REFERENCES users ( users_id ),
+	city_id INT,
+	`status` enum ( 'completed', 'cancelled_by_driver', 'cancelled_by_client' ),
+	request_at date 
+);
+INSERT INTO `order` ( client_id, driver_id, city_id, STATUS, request_at )
+VALUES
+	( 1, 10, 1, 1, '2013-10-1' ),
+	( 2, 11, 1, 2, '2013-10-1' ),
+	( 3, 12, 6, 1, '2013-10-1' ),
+	( 4, 13, 6, 3, '2013-10-1' ),
+	( 1, 10, 1, 1, '2013-10-2' ),
+	( 2, 11, 6, 1, '2013-10-2' ),
+	( 3, 12, 6, 1, '2013-10-2' ),
+	( 2, 12, 12, 1, '2013-10-3' ),
+	( 3, 10, 12, 1, '2013-10-3' ),
+	( 4, 13, 12, 2, '2013-10-3' );
+```
+```sql
+SELECT
+	request_at AS `date`,
+	cast(
+	count( CASE WHEN `status` <> 'completed' THEN 1 END )/ count( `status` ) AS DECIMAL ( 10, 2 )) AS 'Cancellation Rate' 
+FROM
+	(
+	SELECT
+		* 
+	FROM
+		`order` 
+	WHERE
+		( client_id NOT IN ( SELECT users_id FROM users WHERE banned = 'Yes' ) ) 
+		AND (
+		driver_id NOT IN ( SELECT users_id FROM users WHERE banned = 'Yes' )) 
+	) AS p1 
+GROUP BY
+	request_at;
+```
+
+**代码注意点**：`order`是 SQL 中的关键字，用作表名时需要使用反引号包围。p1表如下（只有正常用户）：
+
+![image](https://user-images.githubusercontent.com/83053244/192490343-e2b476c6-c35c-4462-81e2-96a5d4e6bb59.png)
+
 
 **小结**：
 1. 主键（primary key）和唯一键（unique key）区别：主键不能重复, 不能为空。唯一键是为了避免添加重复数据。**一张表中只能有一个主键, 但是可以有多个唯一键**。
@@ -405,6 +475,15 @@ WHERE
 3. 外键（Foreign Key）：用于将两个表连接在一起，让两个表的数据保持同步。**一个表的外键用来指向另一个表的主键（Primary Key）**。包含外键的表称为从表，被指向的表称为主表。所以order表是从表，users表是主表。从表的数据受到主表的约束，向从表中插入或者更新数据时，外键的值必须存在于主表的主键中。参考：http://c.biancheng.net/sql/foreign-key.html
 
 4.枚举类型（ENUM）：使用数字索引(1，2，3，…)来表示字符串值。例如：`priority ENUM('Low', 'Medium', 'High') NOT NULL`。参考：https://www.yiibai.com/mysql/enum.html
+
+5.where 中可以用in，但是in 后面不能接表名，只能接集合或者select子句。**这题用的两个 where 很精妙，值得多看看。**
+
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192490545-6c9a3247-e1be-4310-9f27-82a5e7de7568.png)
+
+## 11.2 行程和用户（难度：困难）
+**分析思路2**：只有
 
 
 
