@@ -566,6 +566,77 @@ select `name`,'english' as subject, english as score from quiz2
 ) order by `name`;
 ```
 
+## 14.带货主播(难度：困难）
+**问题**：假设，某平台 2021年主播带货销售额日统计数据如下，表名 anchor_sales。
+
+![image](https://user-images.githubusercontent.com/83053244/192496766-49b76498-a4bd-4c5a-8637-cd09c3dbd957.png)
+
+如果某主播的某日销售额占比达到该平台当日销售总额的 90% 及以上，则称该主播为明星主播，当天也称为明星主播日。请使用 SQL完成如下计算：
+a. 2021年有多少个明星主播日？
+b. 2021年有多少个明星主播？
+
+**分析思路**：首先算出每天的总销售额，然后采用自联结将每天总销售额加到每一条记录中。然后计算每一条记录是不是star，得到表p3。最后挑出 star 是 yes 的记录，采用`count(distinct 列名)`计算出现的主播和主播日次数，避免了重复计算。p3如下：
+
+![image](https://user-images.githubusercontent.com/83053244/192498379-4e635776-adba-4129-a69a-263444076c04.png)
+
+**代码**：
+```sql
+SELECT
+	count( DISTINCT date ) AS star_date,
+	count( DISTINCT anchor_name ) AS star_anchor 
+FROM
+	(
+	SELECT
+		p1.anchor_name,
+		p1.date,
+	CASE
+			
+			WHEN sales / sum_sales >= 0.9 THEN
+			'yes' ELSE 'no' 
+		END AS star 
+	FROM
+		anchor_sales AS p1
+		INNER JOIN ( SELECT `date`, sum( sales ) AS sum_sales FROM anchor_sales GROUP BY `date` ) AS p2 ON p1.date = p2.date 
+	) AS p3 
+WHERE
+	star = 'yes';
+```
+
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192498536-3835c2c1-6e9d-447f-99d3-499b7edc7c72.png)
+
+## 15.查看执行计划
+MySQL中如何查看 sql语句的执行计划？可以看到哪些信息？
+
+使用**explain关键字**可以模拟优化器执行SQL查询语句，从而知道MySQL是如何处理你的SQL语句的，分析你的查询语句或是表结构的性能瓶颈。
+具体知识参考：https://blog.csdn.net/weixin_41558728/article/details/81704916
+
+## 16.解释 ACID
+解释一下 SQL数据库中 ACID是指什么？
+
+**事务的基本要素（ACID）：**
+
+　　1、原子性（Atomicity）：**事务开始后所有操作，要么全部做完，要么全部不做**，不可能停滞在中间环节。事务执行过程中出错，会回滚到事务开始前的状态，所有的操作就像没有发生一样。也就是说事务是一个不可分割的整体，就像化学中学过的原子，是物质构成的基本单位。
+
+　　 2、一致性（Consistency）：事务开始前和结束后，数据库的完整性约束没有被破坏 。比如A向B转账，不可能A扣了钱，B却没收到。其实一致性也是因为原子型的一种表现
+
+　　 3、隔离性（Isolation）：**同一时间，只允许一个事务请求同一数据**，不同的事务之间彼此没有任何干扰。比如A正在从一张银行卡中取钱，在A取钱的过程结束前，B不能向这张卡转账。串行化
+
+　　 4、持久性（Durability）：事务完成后，事务对数据库的所有更新将被保存到数据库，不能回滚。
+   
+   更详细参考：（有事务并发问题/事务隔离级别等）https://www.yisu.com/zixun/453098.html
+   
+## 17.行转列2（困难：中等）
+**问题**：假设有如下比赛结果：
+
+![image](https://user-images.githubusercontent.com/83053244/192500294-53065a32-bf6a-4237-92a2-36e54ab1dc26.png)
+
+请使用 SQL将比赛结果转换为如下形式：
+
+![image](https://user-images.githubusercontent.com/83053244/192500359-b79cb9ec-bb8a-449e-8d1a-5c5aa737bb9e.png)
+
+
 
 
 
