@@ -280,6 +280,121 @@ FROM
 ![image](https://user-images.githubusercontent.com/83053244/192275826-e3a4f503-89c4-4770-897b-6c1969ff248b.png)
 
 ## 9.各部门前 3 高工资的员工（难度：中等）
+**问题**：将项目一中的 employee表清空，重新创建如下新表，并保留department表。编写一个 SQL查询，找出每个部门工资前三高的员工。
+
+![image](https://user-images.githubusercontent.com/83053244/192410048-aca0bc2a-52ab-4323-aea5-5c289041e288.png)
+![image](https://user-images.githubusercontent.com/83053244/192410070-c10a50d7-33da-4e1e-8644-5fd1b1c0ef26.png)
+
+
+**分析思路**：刚开始我想当然地用group by去分组，找出每组前三的工资即可，但是发现事情没这么简单。因为group by子句只具备分组汇总功能，每组总是只能保留一行聚合后的结果，根本无法每组保留三行结果。后来我想到了窗口函数中有partition by子句有类似分组功能。到这里，我才真正搞清楚group by 和 partition by 的区别。**GROUP BY 子句只具备分组汇总功能，而PARTITION BY 子句虽然不具备 GROUP BY 子句的汇总功能，但是它不会改变原始表中记录的行数，想保留多少行都可以。**
+
+**代码**：
+```sql
+SELECT
+	d.site AS Department,
+	e.Employee,
+	e.Salary 
+FROM
+	( SELECT 
+		DepartmentId,
+		NAME AS Employee, 
+		Salary, 
+		rank() over ( PARTITION BY DepartmentId ORDER BY Salary DESC ) AS ranking 
+	  FROM 
+		employee ) AS e
+	INNER JOIN department AS d ON e.DepartmentId = d.Id 
+WHERE
+	ranking <= 3;
+```
+
+**小结**：
+
+如果遇到**按类别分组**时，有两种选择即 group by 和 partition by，需要汇总功能用group by，需要排序等保留原始记录用partition by。
+
+如果遇到**按条件分组**时，就选择case when，比如 > < = 这种。
+
+**输出结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192411419-b1bd7fe4-a68b-4af7-aee4-ee9f395b18b1.png)
+
+## 10.平面上最近距离 (难度:困难）
+**问题**：point_2d表包含一个平面内一些点（超过两个）的坐标值（x，y）。写一条查询语句求出这些点中的最短距离并保留 2位小数。
+
+![image](https://user-images.githubusercontent.com/83053244/192420670-7e45be80-2ce4-46e7-9467-1e9e29495ee1.png)
+
+
+**分析思路**：首先我想到的就是表自联结，表1的第一个点和表2所有点求距离，然后是表1的第二个点和表2所有点求距离，依次类推。这样就能求出所有点之间的距离了。然后按照距离排序选择最短的距离就好了。
+
+**代码**：
+```sql
+#方法一：更推荐法一，代码更精炼一点
+SELECT
+	* 
+FROM
+	(
+	SELECT
+		p1.x AS x1,
+		p1.y AS y1,
+		p2.x AS x2,
+		p2.y AS y2,
+		cast(
+			sqrt(
+			power(( p1.x - p2.x ), 2 )+ power(( p1.y - p2.y ), 2 )) AS DECIMAL ( 10, 2 )) AS distance 
+	FROM
+		point_2d AS p1
+		LEFT OUTER JOIN point_2d AS p2 ON sqrt(
+		power(( p1.x - p2.x ), 2 )+ power(( p1.y - p2.y ), 2 )) <> 0 
+	) AS p3 
+ORDER BY
+	distance 
+	LIMIT 1;
+```
+```sql
+#方法二：
+SELECT
+	* 
+FROM
+	(
+	SELECT
+		*,
+		rank() over ( ORDER BY distance ) AS ranking 
+	FROM
+		(
+		SELECT
+			p1.x AS x1,
+			p1.y AS y1,
+			p2.x AS x2,
+			p2.y AS y2,
+			cast(
+				sqrt(
+				power(( p1.x - p2.x ), 2 )+ power(( p1.y - p2.y ), 2 )) AS DECIMAL ( 10, 2 )) AS distance 
+		FROM
+			point_2d AS p1
+			LEFT OUTER JOIN point_2d AS p2 ON sqrt(power(( p1.x - p2.x ), 2 )+ power(( p1.y - p2.y ), 2 )) <> 0 
+		) AS p3 
+	) AS p4 
+WHERE
+	p4.ranking = 1;
+```
+
+**代码注意点**：
+
+`cast(number as decimal(10,2))`，可以实现保留两位有效数字。`sqrt(power(( p1.x - p2.x ), 2 )+ power(( p1.y - p2.y ), 2 ))`是距离公式。
+
+**where中不能使用max() 等聚合函数，rank() over 等窗口函数只能在 SELECT 子句中使用，order by 等在select前执行的子句不能使用select定义的别名！**违反这些规则会报错，而且不记清楚会浪费很多时间。
+
+**小结**：法一和法二区别在于算出点与点之间的距离之后（如下表），怎么找到最短距离。最精炼的办法（法一）就是在新表的基础上，按照distance order by排序，然后选择第一行就可以了。
+
+![image](https://user-images.githubusercontent.com/83053244/192419133-9124d8e7-fdd5-4d8d-a274-8815b73f5f7d.png)
+
+**运行结果**：
+
+![image](https://user-images.githubusercontent.com/83053244/192420611-ea265c9c-78c3-464c-b46e-c4bf06b6a676.png)
+
+## 11.行程和用户（难度：困难）
+**问题**：
+
+
 
 
 
