@@ -395,6 +395,23 @@ WHERE
 **问题**：
 
 
+**代码注意点**：`order`是 SQL 中的关键字，用作表名时需要使用反引号包围。
+
+**小结**：
+1. 主键（primary key）和唯一键（unique key）区别：主键不能重复, 不能为空。唯一键是为了避免添加重复数据。**一张表中只能有一个主键, 但是可以有多个唯一键**。
+
+2. 自增长字段（AUTO_INCREMENT）：默认下，AUTO_INCREMENT 的初始值是 1，每新增一条记录，字段值自动加 1.**auto_increment的字段必须是主键, 但是主键不一定是auto_increment的**。
+
+3. 外键（Foreign Key）：用于将两个表连接在一起，让两个表的数据保持同步。**一个表的外键用来指向另一个表的主键（Primary Key）**。包含外键的表称为从表，被指向的表称为主表。所以order表是从表，users表是主表。从表的数据受到主表的约束，向从表中插入或者更新数据时，外键的值必须存在于主表的主键中。参考：http://c.biancheng.net/sql/foreign-key.html
+
+4.枚举类型（ENUM）：使用数字索引(1，2，3，…)来表示字符串值。例如：`priority ENUM('Low', 'Medium', 'High') NOT NULL`。参考：https://www.yiibai.com/mysql/enum.html
+
+
+
+
+
+
+
 
 
 
