@@ -627,7 +627,7 @@ MySQL中如何查看 sql语句的执行计划？可以看到哪些信息？
    
    更详细参考：（有事务并发问题/事务隔离级别等）https://www.yisu.com/zixun/453098.html
    
-## 17.行转列2（困难：中等）
+## 17.行转列2（难度：简单）
 **问题**：假设有如下比赛结果：
 
 ![image](https://user-images.githubusercontent.com/83053244/192500294-53065a32-bf6a-4237-92a2-36e54ab1dc26.png)
@@ -635,6 +635,27 @@ MySQL中如何查看 sql语句的执行计划？可以看到哪些信息？
 请使用 SQL将比赛结果转换为如下形式：
 
 ![image](https://user-images.githubusercontent.com/83053244/192500359-b79cb9ec-bb8a-449e-8d1a-5c5aa737bb9e.png)
+
+**代码**：
+```sql
+SELECT
+	cdate AS '比赛日期',
+	count( CASE WHEN result = '胜' THEN 1 ELSE NULL END ) AS '胜',
+	count( CASE WHEN result = '负' THEN 1 ELSE NULL END ) AS '负' 
+FROM
+	competition 
+GROUP BY
+	cdate;
+```
+
+## 18.列转行2（难度：中等）
+**问题**：17题的反向操作，做不出来....
+
+**代码**：
+
+## 19.连续登录
+
+待补充
 
 
 
